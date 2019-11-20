@@ -1,4 +1,4 @@
-# infinity_board
+# Infinity Board
 
 A new Flutter project.
 
