@@ -27,6 +27,7 @@ dependencies:
   circular_profile_avatar: ^1.0.2
   avatar_glow: ^1.1.0
   flutter_colorpicker: any
+  flutter_blue: ^0.6.3+1
   
 
 dev_dependencies:

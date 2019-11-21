@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:draggable_fab/draggable_fab.dart';
 import 'package:avatar_glow/avatar_glow.dart';
+import 'package:flutter_blue/flutter_blue.dart';
 import 'cardPage.dart';
 import 'colorModes.dart';
 
@@ -20,7 +21,9 @@ class _InfinityControllerLEDState extends State<InfinityControllerLED> {
   var connectedStatus = true;
   var bulbStatus = 'BulbOFF.png';
   var glow = true;
-  var _brightness = 0.0;
+  var _brightness = 0;
+
+  FlutterBlue flutterBlue = FlutterBlue.instance; 
 
   @override
   Widget build(BuildContext context) {
@@ -123,12 +126,16 @@ class _InfinityControllerLEDState extends State<InfinityControllerLED> {
                                 padding: const EdgeInsets.all(8.0),
                                 child: Icon(Icons.devices)),
                             onTap: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                    builder: (context) => DeviceScreen()),
+                              showDialog(
+                                context: context,
+                                builder: (BuildContext context) {
+                                  // return alert dialog object
+                                  return AlertDialog(
+                                    title: new Text('Connected Devices'),
+                                    content: flutterBlue.connectedDevices,
+                                  );
+                                },
                               );
-                              //Navigator.pop(context);
                             },
                           ),
                         ),
@@ -196,10 +203,10 @@ class _InfinityControllerLEDState extends State<InfinityControllerLED> {
                                     divisions: 20,
                                     min: 0.0,
                                     max: 100.0,
-                                    value: _brightness,
+                                    value: _brightness.toDouble(),
                                     onChanged: (newValue) {
                                       setState(() {
-                                        _brightness = newValue;
+                                        _brightness = newValue.round();
                                       });
                                     },
                                   ),
@@ -371,7 +378,6 @@ class MyInfo extends StatelessWidget {
         ));
   }
 }
-
 
 class DeviceScreen extends StatelessWidget {
   @override
