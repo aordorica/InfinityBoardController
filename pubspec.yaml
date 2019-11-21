@@ -14,7 +14,7 @@ description: A new Flutter project.
 version: 1.0.0+1
 
 environment:
-  sdk: ">=2.1.0 <3.0.0"
+  sdk: ">=2.5.0 <3.0.0"
 
 dependencies:
   flutter:
@@ -26,8 +26,8 @@ dependencies:
   draggable_fab: ^0.1.1
   circular_profile_avatar: ^1.0.2
   avatar_glow: ^1.1.0
-  flutter_colorpicker: any
-  flutter_blue: ^0.6.3+1
+  flutter_colorpicker: ^0.2.6
+  flutter_blue: 0.6.2
   
 
 dev_dependencies:

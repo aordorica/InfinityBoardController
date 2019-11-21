@@ -18,12 +18,12 @@ class InfinityControllerLED extends StatefulWidget {
 }
 
 class _InfinityControllerLEDState extends State<InfinityControllerLED> {
-  var connectedStatus = true;
-  var bulbStatus = 'BulbOFF.png';
-  var glow = true;
-  var _brightness = 0;
+  bool connectedStatus = true;
+  String bulbStatus = 'BulbOFF.png';
+  bool glow = true;
+  int _brightness = 0;
 
-  FlutterBlue flutterBlue = FlutterBlue.instance; 
+  FlutterBlue flutterBlue = FlutterBlue.instance;
 
   @override
   Widget build(BuildContext context) {
@@ -31,7 +31,7 @@ class _InfinityControllerLEDState extends State<InfinityControllerLED> {
         debugShowCheckedModeBanner: false,
         theme: ThemeData.dark(),
         title: 'Infinity Skateboard',
-        home: new Builder(
+        home: Builder(
             builder: (BuildContext context) => Scaffold(
                   backgroundColor: Color.fromRGBO(37, 50, 68, 100),
                   appBar: AppBar(
@@ -52,8 +52,7 @@ class _InfinityControllerLEDState extends State<InfinityControllerLED> {
                           onPressed: () {
                             Scaffold.of(context).openDrawer();
                           },
-                          tooltip: MaterialLocalizations.of(context)
-                              .openAppDrawerTooltip,
+                          tooltip: MaterialLocalizations.of(context).openAppDrawerTooltip,
                         );
                       },
                     ),
@@ -76,13 +75,9 @@ class _InfinityControllerLEDState extends State<InfinityControllerLED> {
                           child: ListTile(
                             title: Text(
                               'Custom',
-                              style: TextStyle(
-                                  color: Color.fromRGBO(247, 23, 53, 50),
-                                  fontSize: 20),
+                              style: TextStyle(color: Color.fromRGBO(247, 23, 53, 50), fontSize: 20),
                             ),
-                            leading: Padding(
-                                padding: const EdgeInsets.all(8.0),
-                                child: Icon(Icons.edit)),
+                            leading: Padding(padding: const EdgeInsets.all(8.0), child: Icon(Icons.edit)),
                             onTap: () {
                               // Update the state of the app.
                               // ...
@@ -97,13 +92,9 @@ class _InfinityControllerLEDState extends State<InfinityControllerLED> {
                           child: ListTile(
                             title: Text(
                               'Settings',
-                              style: TextStyle(
-                                  color: Color.fromRGBO(247, 23, 53, 50),
-                                  fontSize: 20),
+                              style: TextStyle(color: Color.fromRGBO(247, 23, 53, 50), fontSize: 20),
                             ),
-                            leading: Padding(
-                                padding: const EdgeInsets.all(8.0),
-                                child: Icon(Icons.settings)),
+                            leading: Padding(padding: const EdgeInsets.all(8.0), child: Icon(Icons.settings)),
                             onTap: () {
                               // Update the state of the app.
                               // ...
@@ -118,21 +109,22 @@ class _InfinityControllerLEDState extends State<InfinityControllerLED> {
                             enabled: true,
                             title: Text(
                               'Devices',
-                              style: TextStyle(
-                                  color: Color.fromRGBO(247, 23, 53, 50),
-                                  fontSize: 20),
+                              style: TextStyle(color: Color.fromRGBO(247, 23, 53, 50), fontSize: 20),
                             ),
-                            leading: Padding(
-                                padding: const EdgeInsets.all(8.0),
-                                child: Icon(Icons.devices)),
+                            leading: Padding(padding: const EdgeInsets.all(8.0), child: Icon(Icons.devices)),
                             onTap: () {
-                              showDialog(
+                              showDialog<AlertDialog>(
                                 context: context,
                                 builder: (BuildContext context) {
                                   // return alert dialog object
                                   return AlertDialog(
-                                    title: new Text('Connected Devices'),
-                                    content: flutterBlue.connectedDevices,
+                                    title: Text('Connected Devices'),
+                                    content: Container(
+                                      child: ListView(
+                                        //TODO FIX THIS TO TAKE ASYNC
+                                        children: await bluetoothConnections(),
+                                      ),
+                                    ),
                                   );
                                 },
                               );
@@ -170,8 +162,7 @@ class _InfinityControllerLEDState extends State<InfinityControllerLED> {
                             child: Padding(
                               padding: const EdgeInsets.only(top: 25),
                               child: ConstrainedBox(
-                                constraints: BoxConstraints(
-                                    maxHeight: 200, maxWidth: 400),
+                                constraints: BoxConstraints(maxHeight: 200, maxWidth: 400),
                                 child: AvatarGlow(
                                     curve: Curves.fastLinearToSlowEaseIn,
                                     animate: glow,
@@ -204,7 +195,7 @@ class _InfinityControllerLEDState extends State<InfinityControllerLED> {
                                     min: 0.0,
                                     max: 100.0,
                                     value: _brightness.toDouble(),
-                                    onChanged: (newValue) {
+                                    onChanged: (double newValue) {
                                       setState(() {
                                         _brightness = newValue.round();
                                       });
@@ -247,9 +238,7 @@ class _InfinityControllerLEDState extends State<InfinityControllerLED> {
                                         ),
                                         Text(
                                           'Red',
-                                          style: TextStyle(
-                                              fontWeight: FontWeight.bold,
-                                              fontSize: 18),
+                                          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
                                         )
                                       ],
                                     ),
@@ -266,9 +255,7 @@ class _InfinityControllerLEDState extends State<InfinityControllerLED> {
                                         ),
                                         Text(
                                           'Green',
-                                          style: TextStyle(
-                                              fontWeight: FontWeight.bold,
-                                              fontSize: 18),
+                                          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
                                         )
                                       ],
                                     ),
@@ -285,9 +272,7 @@ class _InfinityControllerLEDState extends State<InfinityControllerLED> {
                                         ),
                                         Text(
                                           'Blue',
-                                          style: TextStyle(
-                                              fontWeight: FontWeight.bold,
-                                              fontSize: 18),
+                                          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
                                         )
                                       ],
                                     ),
@@ -304,9 +289,7 @@ class _InfinityControllerLEDState extends State<InfinityControllerLED> {
                                         ),
                                         Text(
                                           'Yellow',
-                                          style: TextStyle(
-                                              fontWeight: FontWeight.bold,
-                                              fontSize: 18),
+                                          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
                                         )
                                       ],
                                     ),
@@ -323,9 +306,7 @@ class _InfinityControllerLEDState extends State<InfinityControllerLED> {
                                         ),
                                         Text(
                                           'Purple',
-                                          style: TextStyle(
-                                              fontWeight: FontWeight.bold,
-                                              fontSize: 18),
+                                          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
                                         )
                                       ],
                                     ),
@@ -334,9 +315,7 @@ class _InfinityControllerLEDState extends State<InfinityControllerLED> {
                                         ColorMode(),
                                         Text(
                                           'Custom',
-                                          style: TextStyle(
-                                              fontWeight: FontWeight.bold,
-                                              fontSize: 18),
+                                          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
                                         )
                                       ],
                                     ),
@@ -349,16 +328,27 @@ class _InfinityControllerLEDState extends State<InfinityControllerLED> {
                   ),
                 )));
   }
+
+  Future<List<Widget>> bluetoothConnections() async {
+    final List<Widget> deviceNames = <Widget>[];
+
+    final List<BluetoothDevice> connectedDevices = await flutterBlue.connectedDevices;
+    for (var device in connectedDevices) {
+      deviceNames.add(Text(device.name));
+    }
+
+    return deviceNames;
+  }
 }
 
 class MyInfo extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    var name = Text(
+    final name = Text(
       'Bob Ross',
       style: TextStyle(color: Colors.black),
     );
-    var email = Text(
+    final Text email = Text(
       'bobRoss@infinityBoards.com',
       style: TextStyle(color: Colors.black),
     );
@@ -384,7 +374,7 @@ class DeviceScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text("Second Screen"),
+        title: Text('Second Screen'),
       ),
       body: Center(
         child: RaisedButton(

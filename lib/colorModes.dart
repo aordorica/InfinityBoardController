@@ -2,13 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 
 class ColorMode extends StatefulWidget {
-
   @override
   _ColorModeState createState() => _ColorModeState();
 }
 
 class _ColorModeState extends State<ColorMode> {
-
   // create some values
   Color pickerColor = Color(0xff443a49);
   Color currentColor = Color(0xff443a49);
@@ -24,9 +22,9 @@ class _ColorModeState extends State<ColorMode> {
       padding: const EdgeInsets.all(8.0),
       child: FloatingActionButton(
         child: Icon(Icons.add),
-        backgroundColor: this.pickerColor,
+        backgroundColor: pickerColor,
         onPressed: () {
-          showDialog(
+          showDialog<dynamic>(
             context: context,
             child: AlertDialog(
               title: const Text('Pick a color!'),

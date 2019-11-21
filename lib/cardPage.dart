@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 
 class CustomCardBox extends StatelessWidget {
+  const CustomCardBox({@required this.child, @required this.cardRadius});
   final Widget child;
   final double cardRadius;
-  CustomCardBox({@required this.child, @required this.cardRadius});
 
   @override
   Widget build(BuildContext context) {
@@ -12,11 +12,7 @@ class CustomCardBox extends StatelessWidget {
       margin: EdgeInsets.all(15.0),
       decoration: BoxDecoration(
         boxShadow: [
-          BoxShadow(
-            blurRadius: 10.0,
-            color: Colors.black12,
-            offset: Offset(0.0, 10.0)
-          ),
+          BoxShadow(blurRadius: 10.0, color: Colors.black12, offset: Offset(0.0, 10.0)),
         ],
         borderRadius: BorderRadius.circular(cardRadius),
         color: Color.fromRGBO(37, 50, 68, 5),
@@ -24,5 +20,4 @@ class CustomCardBox extends StatelessWidget {
       child: child,
     );
   }
-
 }
