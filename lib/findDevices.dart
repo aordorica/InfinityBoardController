@@ -1,32 +1,76 @@
+import 'dart:async';
+//import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_blue/flutter_blue.dart';
 
-class FindingDevices extends StatelessWidget {
+
+class FlutterBlueApp extends StatelessWidget {
+
+  final Function(BluetoothDevice) onConnect;
+  FlutterBlueApp({
+    @required this.onConnect
+  });
+  
   @override
   Widget build(BuildContext context) {
-    return Container(
-      child: RefreshIndicator(
+    return Scaffold(
+      body: StreamBuilder<BluetoothState>(
+          stream: FlutterBlue.instance.state,
+          initialData: BluetoothState.unknown,
+          builder: (c, snapshot) {
+            final state = snapshot.data;
+            if (state == BluetoothState.on) {
+              return FindDevicesScreen();
+            }
+            return BluetoothOffScreen(state: state);
+          }),
+    );
+  }
+}
+
+class BluetoothOffScreen extends StatelessWidget {
+  const BluetoothOffScreen({Key key, this.state}) : super(key: key);
+
+  final BluetoothState state;
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Color.fromRGBO(37, 50, 68, 100),
+      body: Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: <Widget>[
+            Icon(
+              Icons.bluetooth_disabled,
+              size: 200.0,
+              color: Colors.blue,
+            ),
+            Text(
+              'Bluetooth Adapter is ${state.toString().substring(15)}.',
+              style: Theme.of(context)
+                  .primaryTextTheme
+                  .subhead
+                  .copyWith(color: Colors.white),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class FindDevicesScreen extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: RefreshIndicator(
         onRefresh: () =>
             FlutterBlue.instance.startScan(timeout: Duration(seconds: 4)),
         child: SingleChildScrollView(
           child: Column(
             children: <Widget>[
-              RaisedButton(
-                  child: ConstrainedBox(
-                    constraints: BoxConstraints(maxWidth: 120),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: <Widget>[
-                        Text('Start Scan'),
-                        Padding(
-                          padding: const EdgeInsets.all(8.0),
-                          child: Icon(Icons.bluetooth_searching),
-                        ),
-                      ],
-                    ),
-                  ),
-                  onPressed: () => FlutterBlue.instance
-                      .startScan(timeout: Duration(seconds: 5))),
               StreamBuilder<List<BluetoothDevice>>(
                 stream: Stream.periodic(Duration(seconds: 2))
                     .asyncMap((_) => FlutterBlue.instance.connectedDevices),
@@ -35,6 +79,7 @@ class FindingDevices extends StatelessWidget {
                   children: snapshot.data
                       .map((d) => ListTile(
                             title: Text(d.name),
+                            subtitle: Text(d.id.toString()),
                             trailing: StreamBuilder<BluetoothDeviceState>(
                               stream: d.state,
                               initialData: BluetoothDeviceState.disconnected,
@@ -78,80 +123,24 @@ class FindingDevices extends StatelessWidget {
           ),
         ),
       ),
-    );
-  }
-}
-
-class BluetoothOffScreen extends StatelessWidget {
-  const BluetoothOffScreen({Key key, this.state}) : super(key: key);
-
-  final BluetoothState state;
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.lightBlue,
-      body: Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: <Widget>[
-            Icon(
-              Icons.bluetooth_disabled,
-              size: 200.0,
-              color: Colors.white54,
-            ),
-            Text(
-              'Bluetooth Adapter is ${state.toString().substring(15)}.',
-              style: Theme.of(context)
-                  .primaryTextTheme
-                  .subhead
-                  .copyWith(color: Colors.white),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-// Scan Results Tile class to display each result
-class ScanResultTile extends StatelessWidget {
-  const ScanResultTile({Key key, this.result, this.onTap}) : super(key: key);
-
-  final ScanResult result;
-  final VoidCallback onTap;
-
-  Widget _buildTitle(BuildContext context) {
-    if (result.device.name.length > 0) {
-      return Column(
-        mainAxisAlignment: MainAxisAlignment.start,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: <Widget>[
-          Text(
-            result.device.name,
-            overflow: TextOverflow.ellipsis,
-          ),
-          Text(
-            result.device.id.toString(),
-            style: Theme.of(context).textTheme.caption,
-          )
-        ],
-      );
-    } else {
-      return Text(result.device.id.toString());
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return ExpansionTile(
-      title: _buildTitle(context),
-      //leading: Text(result.rssi.toString()),
-      trailing: RaisedButton(
-        child: Text('CONNECT'),
-        color: Colors.black,
-        textColor: Colors.white,
-        onPressed: (result.advertisementData.connectable) ? onTap : null,
+      floatingActionButton: StreamBuilder<bool>(
+        stream: FlutterBlue.instance.isScanning,
+        initialData: false,
+        builder: (c, snapshot) {
+          if (snapshot.data) {
+            return FloatingActionButton(
+              child: Icon(Icons.stop),
+              onPressed: () => FlutterBlue.instance.stopScan(),
+              backgroundColor: Color.fromRGBO(247, 23, 53, 50),
+            );
+          } else {
+            return FloatingActionButton(
+              backgroundColor: Color.fromRGBO(254, 185, 4, 80),
+                child: Icon(Icons.search),
+                onPressed: () => FlutterBlue.instance
+                    .startScan(timeout: Duration(seconds: 4)));
+          }
+        },
       ),
     );
   }
@@ -239,21 +228,46 @@ class DeviceScreen extends StatelessWidget {
                 ),
               ),
             ),
-            StreamBuilder<int>(
-              stream: device.mtu,
-              initialData: 0,
-              builder: (c, snapshot) => ListTile(
-                title: Text('MTU Size'),
-                subtitle: Text('${snapshot.data} bytes'),
-                trailing: IconButton(
-                  icon: Icon(Icons.edit),
-                  onPressed: () => device.requestMtu(223),
-                ),
-              ),
-            ),
           ],
         ),
       ),
     );
   }
 }
+class ScanResultTile extends StatelessWidget {
+  const ScanResultTile({Key key, this.result, this.onTap}) : super(key: key);
+
+  final ScanResult result;
+  final VoidCallback onTap;
+
+  Widget _buildTitle(BuildContext context) {
+    if (result.device.name.length > 0) {
+      return Column(
+        mainAxisAlignment: MainAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: <Widget>[
+          Text(
+            result.device.name,
+            overflow: TextOverflow.ellipsis,
+          )
+        ],
+      );
+    } else {
+      return Text(result.device.id.toString());
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return ExpansionTile(
+      title: _buildTitle(context),
+      trailing: RaisedButton(
+        child: Text('CONNECT'),
+        color: Colors.black,
+        textColor: Colors.white,
+        onPressed: (result.advertisementData.connectable) ? onTap : null,
+      ),
+      children: <Widget>[]);
+  }
+}
+

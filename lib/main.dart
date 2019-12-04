@@ -7,9 +7,13 @@ import 'package:flutter/widgets.dart';
 import 'package:draggable_fab/draggable_fab.dart';
 import 'package:avatar_glow/avatar_glow.dart';
 import 'package:flutter_blue/flutter_blue.dart';
-import 'package:infinity_board/devicesList.dart';
+//import 'package:infinity_board/bt_device.dart';
+import 'package:infinity_board/findDevices.dart';
+
+//import 'dart:async';
+import 'dart:convert' show utf8;
 import 'cardPage.dart';
-import 'colorModes.dart';
+import 'colorSelector.dart';
 
 void main() => runApp(InfinityControllerLED());
 
@@ -19,16 +23,52 @@ class InfinityControllerLED extends StatefulWidget {
 }
 
 class _InfinityControllerLEDState extends State<InfinityControllerLED> {
+  var bulb = AssetImage('images/BulbON.png');
   bool connectedStatus = true;
-  String bulbStatus = 'BulbOFF.png';
   bool glow = true;
+  bool ledState = true;
   int _brightness = 0;
   Color onButtonState = Colors.lightBlue[100];
 
+  BluetoothDevice targetDevice;
+  BluetoothCharacteristic targetCharacteristic;
+  FlutterBlue flutterBlue = FlutterBlue.instance;
+  String connectedDevice = 'No Device Connected';
+
+  final String SERVICE_UUID = "0000ffe0-0000-1000-8000-00805f9b34fb";
+  final String CHARACTERISTIC_UUID = "0000ffe1-0000-1000-8000-00805f9b34fb";
+  final String TARGET_DEVICE_NAME = "InfinityBoard";
+  String connectionText = '';
+
+discoverServices() async {
+    if (targetDevice == null) return;
+
+    List<BluetoothService> services = await targetDevice.discoverServices();
+    services.forEach((service) {
+      // do something with service
+      if (service.uuid.toString() == SERVICE_UUID) {
+        service.characteristics.forEach((characteristic) {
+          if (characteristic.uuid.toString() == CHARACTERISTIC_UUID) {
+            targetCharacteristic = characteristic;
+            writeData("Hi there, HM-10!!");
+            setState(() {
+              connectionText = "All Ready with ${targetDevice.name}";
+            });
+          }
+        });
+      }
+    });
+  }
+
+  writeData(String data) {
+    if (targetCharacteristic == null) return;
+
+    List<int> bytes = utf8.encode(data);
+    targetCharacteristic.write(bytes);
+  }
+
   @override
   Widget build(BuildContext context) {
-    BluetoothDevice flutterBlue;
-
     return MaterialApp(
         debugShowCheckedModeBanner: false,
         theme: ThemeData.dark(),
@@ -70,9 +110,8 @@ class _InfinityControllerLEDState extends State<InfinityControllerLED> {
                           padding: EdgeInsets.zero,
                           child: MyInfo(),
                         ),
-
                         //Auto App drawer list
-                        // Manual mode list App drawer
+                        // Custom mode list App drawer
                         Padding(
                           padding: const EdgeInsets.all(8.0),
                           child: ListTile(
@@ -119,7 +158,7 @@ class _InfinityControllerLEDState extends State<InfinityControllerLED> {
                           child: ListTile(
                             enabled: true,
                             title: Text(
-                              'Devices',
+                              'Devices:\n $connectedDevice',
                               style: TextStyle(
                                   color: Color.fromRGBO(247, 23, 53, 50),
                                   fontSize: 20),
@@ -134,18 +173,14 @@ class _InfinityControllerLEDState extends State<InfinityControllerLED> {
                                   // return alert dialog object
                                   return AlertDialog(
                                     title: Text('Connected Devices'),
-                                    content: Container(
-                                        child: StreamBuilder<BluetoothState>(
-                                            stream: FlutterBlue.instance.state,
-                                            initialData: BluetoothState.unknown,
-                                            builder: (c, snapshot) {
-                                              final state = snapshot.data;
-                                              if (state == BluetoothState.on) {
-                                                return FindingDevices();
-                                              }
-                                              return BluetoothOffScreen(
-                                                  state: state);
-                                            })),
+                                    content: Container(child: FlutterBlueApp(
+                                      onConnect: (BluetoothDevice device) {
+                                        targetDevice = device;
+                                        setState(() {
+                                          connectedDevice = 'Now Connected';
+                                        });
+                                      },
+                                    )),
                                   );
                                 },
                               );
@@ -161,12 +196,13 @@ class _InfinityControllerLEDState extends State<InfinityControllerLED> {
                         setState(() {
                           if (connectedStatus == true) {
                             glow = true;
-                            bulbStatus = 'images/BulbOn.png';
+                            bulb = AssetImage('images/BulbON.png');
                             connectedStatus = false;
                             onButtonState = Color.fromRGBO(247, 23, 53, 50);
                           } else {
+                            writeData('o');
                             glow = false;
-                            bulbStatus = 'images/BulbOFF.png';
+                            bulb = AssetImage('images/BulbOFF.png');
                             connectedStatus = true;
                             onButtonState = Colors.green;
                           }
@@ -191,7 +227,7 @@ class _InfinityControllerLEDState extends State<InfinityControllerLED> {
                                     curve: Curves.fastLinearToSlowEaseIn,
                                     animate: glow,
                                     child: Image(
-                                      image: AssetImage('$bulbStatus'),
+                                      image: bulb,
                                     ),
                                     endRadius: 90.0,
                                     glowColor: Colors.white),
@@ -215,8 +251,10 @@ class _InfinityControllerLEDState extends State<InfinityControllerLED> {
                                 Container(
                                   width: 400.0,
                                   child: Slider(
-                                    inactiveColor: Color.fromRGBO(154, 184, 4, 100),
-                                    activeColor: Color.fromRGBO(252, 0, 34, 100),
+                                    inactiveColor:
+                                        Color.fromRGBO(154, 184, 4, 100),
+                                    activeColor:
+                                        Color.fromRGBO(252, 0, 34, 100),
                                     min: 0.0,
                                     max: 100.0,
                                     value: _brightness.toDouble(),
@@ -258,7 +296,8 @@ class _InfinityControllerLEDState extends State<InfinityControllerLED> {
                                             backgroundColor: Colors.red,
                                             onPressed: () {
                                               //Change Color to RED
-                                              FlutterBlue.instance.state;
+                                              print('\n\n Pressing RED button...... \n\n');
+                                              writeData('r');
                                             },
                                           ),
                                         ),
@@ -348,7 +387,7 @@ class _InfinityControllerLEDState extends State<InfinityControllerLED> {
                                     ),
                                     Column(
                                       children: <Widget>[
-                                        ColorMode(),
+                                        ColorSelector(),
                                         Text(
                                           'Custom',
                                           style: TextStyle(
