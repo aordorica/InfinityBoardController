@@ -1,7 +1,9 @@
 # Infinity Board
 
-A new Flutter project.
+Welcome to our humble project!
+Check out our full Project overview for the full scoop!:
 
+- [Infinity Board Senior Design Project](https://sites.google.com/view/infinityboard) for the full scoop!
 ## Getting Started
 
 This project is a starting point for a Flutter application.
